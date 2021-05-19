@@ -5,7 +5,6 @@
 int main(){
     char *group_id, *secret;
     char *value, *key;
-    char ** msg;
 
     value = "1234";
     key = "asdf";
