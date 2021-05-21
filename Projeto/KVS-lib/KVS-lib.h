@@ -8,6 +8,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <unistd.h>
+
 
 int establish_connection (char * group_id, char * secret);
 int put_value(char * key, char * value);

@@ -5,15 +5,14 @@
 int main(){
     char *group_id, *secret;
     char *value, *key;
+    char ** msg;
 
     value = "1234";
     key = "asdf";
 
-    if(establish_connection("group_id", "secret") < 0)
-        exit(-1);
-    
-    put_value(key, value);
-
+    establish_connection(group_id, secret);
+    //put_value(key, value);
+    close_connection();
 
     return(0);
 }
