@@ -9,26 +9,68 @@
 
 #define SOCKNAME "/tmp/KVS-LocalServer"
 
-void * client_thread(void * arg){
+typedef struct dict_t_struct {
+    char *key;
+    void *value;
+    struct dict_t_struct *next;
+} dict_t;
 
-    int local_socket = (int) arg;
-    char buf[10000];
-    printf("New thread -> local socket %d\n", local_socket);
+dict_t **dictAlloc(void) {
+    return malloc(sizeof(dict_t));
+}
 
-    do{
-        if(strcmp(buf, "put")){
-            printf("WOW\n");
-            write(local_socket, "put_value", sizeof("put_value"));
+void dictDealloc(dict_t **dict) {
+    free(dict);
+}
+
+void *getItem(dict_t *dict, char *key) {
+    dict_t *ptr;
+    for (ptr = dict; ptr != NULL; ptr = ptr->next) {
+        if (strcmp(ptr->key, key) == 0) {
+            return ptr->value;
         }
-    }while(read(local_socket, &buf, sizeof(buf)) >0);
-
-    close(local_socket);
-    printf("exiting thread\n");
+    }
+    
     return NULL;
+}
+
+void delItem(dict_t **dict, char *key) {
+    dict_t *ptr, *prev;
+    for (ptr = *dict, prev = NULL; ptr != NULL; prev = ptr, ptr = ptr->next) {
+        if (strcmp(ptr->key, key) == 0) {
+            if (ptr->next != NULL) {
+                if (prev == NULL) {
+                    *dict = ptr->next;
+                } else {
+                    prev->next = ptr->next;
+                }
+            } else if (prev != NULL) {
+                prev->next = NULL;
+            } else {
+                *dict = NULL;
+            }
+            
+            free(ptr->key);
+            free(ptr);
+            
+            return;
+        }
+    }
+}
+
+void addItem(dict_t **dict, char *key, void *value) {
+    delItem(dict, key); /* If we already have a item with this key, delete it. */
+    dict_t *d = malloc(sizeof(struct dict_t_struct));
+    d->key = malloc(strlen(key)+1);
+    strcpy(d->key, key);
+    d->value = value;
+    d->next = *dict;
+    *dict = d;
 }
 
 int main(){
     struct sockaddr_un server_addr;
+    dict_t **kvs = dictAlloc();
 
     memset(&server_addr, 0, sizeof(struct sockaddr_un));
     /* Clear structure */
@@ -56,10 +98,27 @@ int main(){
         client_socket = accept(server_sock, NULL, NULL);
         printf("accepted one client -> new socket %d\n", client_socket);
         
-        pthread_t t_id;
-        pthread_create(t_id, NULL, client_thread, client_socket);
+        char flag_read[8], key[1000], value[1000];
 
+
+        do{
+            if(strcmp(flag_read, "put") == 0){
+                if(read(client_socket, key, sizeof(key)) < 0){
+                    perror("read key");
+                    exit(-1);
+                }
+                printf("%s\n", key);
+                if(read(client_socket, value, sizeof(value)) < 0){
+                    perror("read value");
+                    exit(-1);
+                }
+                printf("%s\n", value);
+            }
+        }while(read(client_socket, flag_read, sizeof(flag_read)) > 0);
+
+        close(client_socket);
+        printf("Socket closed\n");
     }
-
-
+    dictDealloc(kvs);
+    return 0;
 }

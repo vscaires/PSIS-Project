@@ -1,19 +1,15 @@
 #include "KVS-lib.h"
 
-#define SOCKNAME "/tmp/KVS-LocalServer"
-int sock;
-struct sockaddr_un app_sock_addr;
+
 
 
 int establish_connection (char * group_id, char * secret){    
-    int sock = socket(AF_UNIX, SOCK_STREAM, 0);
+    sock = socket(AF_UNIX, SOCK_STREAM, 0);
     if(sock == -1){
         perror("socket creation");
         exit(-1);
     }
-
-    struct sockaddr_un server_addr;
-
+   
     memset(&server_addr, 0, sizeof(struct sockaddr_un));
     /* Clear structure */
     server_addr.sun_family = AF_UNIX;
@@ -26,39 +22,27 @@ int establish_connection (char * group_id, char * secret){
     }
     printf("connected\n");
 
-    char flag[8];
-    strcpy(flag, "put");
-    do{
-        sleep(1);
-    }while(write(sock, flag, sizeof(flag)) > 0);
-
-    // strcpy(group_id, "");
-    // strcpy(secret, "");
-
-    // printf("%s %ld\n", buf, sizeof(buf));
-    // do{
-    //     sleep(1);
-    // }while(write(sock, buf, sizeof(buf)) > 0);
-
     return 0;
 }
 
 
 int put_value(char * key, char * value){
-    char flag[8], buff[100];
-    strcpy(flag, "get");
-    if (write(sock, flag, strlen(flag)) == -1) {
-        perror("send flag");
-        exit(-1); 
+    char flag[8], buf[10000];
+
+    strcpy(flag, "put");
+    if(write(sock, flag, sizeof(flag)) < 0){
+        perror("write flag");
+        exit(-1);
+    }
+    
+    if (write(sock, key, strlen(value)) < 0) {
+        perror("write key");
+        exit(-2); 
     }
 
-    if (write(sock, key, strlen(key)) == -1) {
-        perror("send key");
-        exit(-1); 
-    }
-    if (write(sock, value, strlen(value)) == -1) {
-        perror("send value");
-        exit(-1); 
+    if (write(sock, value, strlen(value)) < 0) {
+        perror("write value");
+        exit(-3); 
     }
 
     return 1;
@@ -101,5 +85,6 @@ int register_callback(char * key, void (*callback_function)(char *)){
 }
 
 int close_connection(){
+    printf("Exiting sock %d\n", sock);
     close(sock);
 }

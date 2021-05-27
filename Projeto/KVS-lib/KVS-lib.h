@@ -18,4 +18,8 @@ int delete_value(char * key);
 int register_callback(char * key, void (*callback_function)(char *));
 int close_connection();
 
+#define SOCKNAME "/tmp/KVS-LocalServer"
+int sock;
+struct sockaddr_un server_addr;
+
 #endif
