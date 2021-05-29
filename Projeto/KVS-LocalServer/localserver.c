@@ -6,7 +6,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <errno.h>
 
+
+#define FIFO_NAME "/tmp/fifo_flags"
 #define SOCKNAME "/tmp/KVS-LocalServer"
 
 typedef struct dict_t_struct {
@@ -69,6 +74,13 @@ void addItem(dict_t **dict, char *key, void *value) {
 }
 
 int main(){
+
+    // mkfifo(FIFO_NAME, "r");
+    // printf("Error mkfifo: %s\n", strerror(errno));
+    // printf("waiting for writers...\n");
+    // int fd = open(FIFO_NAME, O_RDONLY);
+    // printf("got a writer\n");
+
     struct sockaddr_un server_addr;
     dict_t **kvs = dictAlloc();
 
@@ -94,27 +106,27 @@ int main(){
     }
 
     int client_socket;
+    char flag_read[8], key[10000], c, value[10000];
+
+    int i = 0;
     while(1){
         client_socket = accept(server_sock, NULL, NULL);
         printf("accepted one client -> new socket %d\n", client_socket);
         
-        char flag_read[8], key[1000], value[1000];
-
-
-        do{
-            if(strcmp(flag_read, "put") == 0){
-                if(read(client_socket, key, sizeof(key)) < 0){
-                    perror("read key");
-                    exit(-1);
+        for(int o = 0; o < 2; i++){
+            // read(fd, flag_read, sizeof(flag_read));
+            // if(strcmp(flag_read, "put") == 0){
+                read(client_socket, key, sizeof(key));
+                sleep(5);
+                read(client_socket, value, sizeof(value));
+                if(getItem(*kvs, key) == NULL || getItem(*kvs, key) != value){
+                    addItem(kvs, key, value);
+                    printf("Key-value added\n");
+                }else{
+                    printf("Key-value already exists\n");   
                 }
-                printf("%s\n", key);
-                if(read(client_socket, value, sizeof(value)) < 0){
-                    perror("read value");
-                    exit(-1);
-                }
-                printf("%s\n", value);
-            }
-        }while(read(client_socket, flag_read, sizeof(flag_read)) > 0);
+        }
+        //}while(1);
 
         close(client_socket);
         printf("Socket closed\n");

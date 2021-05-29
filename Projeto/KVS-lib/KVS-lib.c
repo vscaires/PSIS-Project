@@ -1,9 +1,16 @@
 #include "KVS-lib.h"
-
+#include <errno.h>
 
 
 
 int establish_connection (char * group_id, char * secret){    
+    
+    // mkfifo(FIFO_NAME, "w");
+    // printf("Error mkfifo: %s\n", strerror(errno));
+    // printf("waiting for readers...\n");
+    // fd = open(FIFO_NAME, O_WRONLY);
+    
+
     sock = socket(AF_UNIX, SOCK_STREAM, 0);
     if(sock == -1){
         perror("socket creation");
@@ -27,19 +34,18 @@ int establish_connection (char * group_id, char * secret){
 
 
 int put_value(char * key, char * value){
-    char flag[8], buf[10000];
+    // char flag[8];
 
-    strcpy(flag, "put");
-    if(write(sock, flag, sizeof(flag)) < 0){
-        perror("write flag");
-        exit(-1);
-    }
+    // strcpy(flag, "put");
+
+    // if ((write(fd, flag, strlen(flag))) == -1)
+    //         perror("write");
     
-    if (write(sock, key, strlen(value)) < 0) {
+    if (write(sock, key, strlen(key)) < 0) {
         perror("write key");
         exit(-2); 
-    }
-
+    }  
+    sleep(4);
     if (write(sock, value, strlen(value)) < 0) {
         perror("write value");
         exit(-3); 
@@ -55,7 +61,6 @@ int get_value(char * key, char ** value){
         perror("send flag");
         exit(-1); 
     }
-
     if (write(sock, key, strlen(key)) == -1) {
         perror("send key");
         exit(-2); 

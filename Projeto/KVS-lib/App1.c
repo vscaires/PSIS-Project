@@ -1,17 +1,26 @@
 #include "KVS-lib.h"
 
 
+
 int main(){
     char *group_id, *secret;
-    char *value, *key;
+    char value[10000], key[10000];
     char ** msg;
 
-    value = "1234";
-    key = "asdf";
+    strcpy(key, "ab");
+    strcpy(value, "10238407123469127346"); 
     int sock; 
 
     establish_connection(group_id, secret);
     put_value(key, value);
+    put_value(key, value);
+    // put_value(key, value);
+    // strcpy(key, "abc"); 
+    // put_value(key, value);
+    // strcpy(key, "ab");
+    // put_value(key, value);
+
+
     close_connection();
 
     return(0);
