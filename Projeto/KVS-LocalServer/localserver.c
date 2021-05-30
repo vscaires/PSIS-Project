@@ -106,7 +106,7 @@ int main(){
     }
 
     int client_socket;
-    char key[256], c[1], value[256];
+    char key[256], c[1], *value;
 
     int i = 0, d = 0;
     while(1){
@@ -115,24 +115,14 @@ int main(){
 
        read(client_socket, &i, sizeof(i)); 
         do{
-            if(i == 1){
-                d = 0;
+            if(i == 1){ //put_value
                 read(client_socket, &i, sizeof(i));
-                for(i ; i > 0; i--){
-                    if(read(client_socket, c, sizeof(c)) <= 0)
-                        break;
-                    key[d] = c[0];
-                    d++;
-                }
+                read(client_socket, key, i);
                 
-                d = 0;
                 read(client_socket, &i, sizeof(i));
-                for(i ; i > 0; i--){
-                    if(read(client_socket, c, sizeof(c)) <= 0)
-                        break;
-                    value[d] = c[0];
-                    d++;
-                }
+                value = malloc(i*sizeof(char));
+                read(client_socket, value, i);
+                
 
                 if(getItem(*kvs, key) == NULL || getItem(*kvs, key) != value){
                     addItem(kvs, key, value);
@@ -140,6 +130,10 @@ int main(){
                 }else{
                     printf("Key-value already exists\n");   
                 }
+
+                memset(key, 0, sizeof(key));
+                memset(value, 0, sizeof(value));
+
             }
         }while(read(client_socket, &i, sizeof(i)) > 0);
 
