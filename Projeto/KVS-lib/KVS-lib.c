@@ -4,12 +4,6 @@
 
 
 int establish_connection (char * group_id, char * secret){    
-    
-    // mkfifo(FIFO_NAME, "w");
-    // printf("Error mkfifo: %s\n", strerror(errno));
-    // printf("waiting for readers...\n");
-    // fd = open(FIFO_NAME, O_WRONLY);
-    
 
     sock = socket(AF_UNIX, SOCK_STREAM, 0);
     if(sock == -1){
@@ -34,18 +28,20 @@ int establish_connection (char * group_id, char * secret){
 
 
 int put_value(char * key, char * value){
-    // char flag[8];
+    int flag = 1, sz = 0;
 
-    // strcpy(flag, "put");
-
-    // if ((write(fd, flag, strlen(flag))) == -1)
-    //         perror("write");
-    
+    if ((write(sock, &flag, sizeof(flag))) == -1)
+        perror("write");
+        
+    sz = strlen(key);
+    write(sock, &sz, sizeof(sz));
     if (write(sock, key, strlen(key)) < 0) {
         perror("write key");
         exit(-2); 
-    }  
-    sleep(4);
+    }
+
+    sz = strlen(value);
+    write(sock, &sz, sizeof(sz));
     if (write(sock, value, strlen(value)) < 0) {
         perror("write value");
         exit(-3); 

@@ -20,9 +20,9 @@ int delete_value(char * key);
 int register_callback(char * key, void (*callback_function)(char *));
 int close_connection();
 
-#define FIFO_NAME "/tmp/fifo_flags"
+
 #define SOCKNAME "/tmp/KVS-LocalServer"
-int fd, sock;
+int sock;
 struct sockaddr_un server_addr;
 
 #endif

@@ -106,27 +106,42 @@ int main(){
     }
 
     int client_socket;
-    char flag_read[8], key[10000], c, value[10000];
+    char key[256], c[1], value[256];
 
-    int i = 0;
+    int i = 0, d = 0;
     while(1){
         client_socket = accept(server_sock, NULL, NULL);
         printf("accepted one client -> new socket %d\n", client_socket);
-        
-        for(int o = 0; o < 2; i++){
-            // read(fd, flag_read, sizeof(flag_read));
-            // if(strcmp(flag_read, "put") == 0){
-                read(client_socket, key, sizeof(key));
-                sleep(5);
-                read(client_socket, value, sizeof(value));
+
+       read(client_socket, &i, sizeof(i)); 
+        do{
+            if(i == 1){
+                d = 0;
+                read(client_socket, &i, sizeof(i));
+                for(i ; i > 0; i--){
+                    if(read(client_socket, c, sizeof(c)) <= 0)
+                        break;
+                    key[d] = c[0];
+                    d++;
+                }
+                
+                d = 0;
+                read(client_socket, &i, sizeof(i));
+                for(i ; i > 0; i--){
+                    if(read(client_socket, c, sizeof(c)) <= 0)
+                        break;
+                    value[d] = c[0];
+                    d++;
+                }
+
                 if(getItem(*kvs, key) == NULL || getItem(*kvs, key) != value){
                     addItem(kvs, key, value);
                     printf("Key-value added\n");
                 }else{
                     printf("Key-value already exists\n");   
                 }
-        }
-        //}while(1);
+            }
+        }while(read(client_socket, &i, sizeof(i)) > 0);
 
         close(client_socket);
         printf("Socket closed\n");
