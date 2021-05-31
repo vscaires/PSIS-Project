@@ -11,19 +11,27 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <assert.h>
 
 #define SOCKNAME "/tmp/KVS-LocalServer"
 
-typedef struct dict_t_struct {
-    char *key;
-    void *value;
-    struct dict_t_struct *next;
-} dict_t;
+typedef struct dict *Dict;
 
-dict_t **dictAlloc(void);
-void dictDealloc(dict_t **dict);
-void *getItem(dict_t *dict, char *key);
-void delItem(dict_t **dict, char *key);
-void addItem(dict_t **dict, char *key, void *value);
+/* create a new empty dictionary */
+Dict DictCreate(void);
+
+/* destroy a dictionary */
+void DictDestroy(Dict);
+
+/* insert a new key-value pair into an existing dictionary */
+void DictInsert(Dict, const char *key, const char *value);
+
+/* return the most recently inserted value associated with a key */
+/* or 0 if no matching key is present */
+const char *DictSearch(Dict, const char *key);
+
+/* delete the most recently inserted record with the given key */
+/* if there is no such record, has no effect */
+void DictDelete(Dict, const char *key);
 
 #endif

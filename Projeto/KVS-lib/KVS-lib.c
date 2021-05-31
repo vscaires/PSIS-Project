@@ -30,7 +30,7 @@ int establish_connection (char * group_id, char * secret){
 int put_value(char * key, char * value){
     int flag = 1, sz = 0;
 
-    printf("Put Value\n");
+    printf("\tPut Value\n");
     printf("Key : %s\n", key);
     printf("Value : %s\n", value);
     if ((write(sock, &flag, sizeof(flag))) < 0){
@@ -62,8 +62,8 @@ int put_value(char * key, char * value){
 }
 
 int get_value(char * key, char ** value){
-    int flag = 3, sz = 0;
-    printf("Get value\n");
+    int flag = 2, sz = 0;
+    printf("\tGet value\n");
     printf("Key: %s\n", key);
     if ((write(sock, &flag, sizeof(flag))) < 0){
         perror("write flag");
@@ -76,21 +76,29 @@ int get_value(char * key, char ** value){
         return(-2);
     }
 
+    if (write(sock, key, strlen(key)) < 0) {
+        perror("write key");
+        return(-3); 
+    }
+
     read(sock, &sz, sizeof(sz));
     if(sz == -1){
         printf("Key-Value not found...\n");
-        return(-3);
+        return(-4);
     }
 
-    *value = malloc(sz*sizeof(char));
-    read(sock, value, sz);
+    value = malloc(sizeof(char*));
+    value[0] = malloc(sz*sizeof(char));
+    read(sock, value[0], sz);
     
-    printf("Value : %s\n", *value);
+    printf("Value : %s\n", value[0]);
+
+    return 1;
 }
 
 int delete_value(char * key){
     int flag = 3, sz = 0;
-    printf("Delete Value\n");
+    printf("\tDelete Value\n");
     printf("Key: %s\n", key);
 
     if ((write(sock, &flag, sizeof(flag))) < 0){
