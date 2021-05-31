@@ -15,6 +15,11 @@
 
 #define SOCKNAME "/tmp/KVS-LocalServer"
 
+#define INITIAL_SIZE (1024)
+#define GROWTH_FACTOR (2)
+#define MAX_LOAD_FACTOR (1)
+#define MULTIPLIER (97)
+
 typedef struct dict *Dict;
 
 /* create a new empty dictionary */
@@ -33,5 +38,8 @@ const char *DictSearch(Dict, const char *key);
 /* delete the most recently inserted record with the given key */
 /* if there is no such record, has no effect */
 void DictDelete(Dict, const char *key);
+
+int eRead(int fd, void *buf, size_t count);
+int eWrite(int fd, void *buf, size_t count);
 
 #endif

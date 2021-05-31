@@ -21,7 +21,12 @@ int establish_connection (char * group_id, char * secret){
         perror("connect");
         exit(-1);
     }
-    printf("connected\n");
+    printf("Socket connected!\n\n");
+    printf("Group Name : %s\n", group_id);
+    printf("Secret : %s\n\n", secret);
+    int i = strlen(group_id);
+    write(sock, &i, sizeof(i));
+    write(sock, group_id, strlen(group_id));
 
     return 0;
 }
@@ -30,7 +35,7 @@ int establish_connection (char * group_id, char * secret){
 int put_value(char * key, char * value){
     int flag = 1, sz = 0;
 
-    printf("\tPut Value\n");
+    printf("------Put Value-------\n");
     printf("Key : %s\n", key);
     printf("Value : %s\n", value);
     if ((write(sock, &flag, sizeof(flag))) < 0){
@@ -58,12 +63,13 @@ int put_value(char * key, char * value){
         return(-3); 
     }
 
+    printf("----------------------\n\n");
     return 1;
 }
 
 int get_value(char * key, char ** value){
     int flag = 2, sz = 0;
-    printf("\tGet value\n");
+    printf("------Get value-------\n");
     printf("Key: %s\n", key);
     if ((write(sock, &flag, sizeof(flag))) < 0){
         perror("write flag");
@@ -84,6 +90,7 @@ int get_value(char * key, char ** value){
     read(sock, &sz, sizeof(sz));
     if(sz == -1){
         printf("Key-Value not found...\n");
+        printf("----------------------\n\n");
         return(-4);
     }
 
@@ -92,13 +99,14 @@ int get_value(char * key, char ** value){
     read(sock, value[0], sz);
     
     printf("Value : %s\n", value[0]);
+    printf("----------------------\n\n");
 
     return 1;
 }
 
 int delete_value(char * key){
     int flag = 3, sz = 0;
-    printf("\tDelete Value\n");
+    printf("-----Delete Value-----\n");
     printf("Key: %s\n", key);
 
     if ((write(sock, &flag, sizeof(flag))) < 0){
@@ -115,6 +123,7 @@ int delete_value(char * key){
         perror("send key");
         return(-3); 
     }
+    printf("----------------------\n\n");
 
     return 1;
 }
@@ -124,6 +133,6 @@ int register_callback(char * key, void (*callback_function)(char *)){
 }
 
 int close_connection(){
-    printf("Exiting sock %d\n", sock);
+    printf("Exiting sock ...%d\n", sock);
     close(sock);
 }

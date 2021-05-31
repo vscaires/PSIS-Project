@@ -3,12 +3,14 @@
 
 
 int main(){
-    char *group_id, *secret;
+    char group_id[256], secret[256];
     char value[256], key[256];
     char ** msg;
 
     printf("Application 1 initiating ...\n");
 
+    strcpy(group_id, "something1234");
+    strcpy(secret, "password321");
     strcpy(key, "abcd");
     strcpy(value, "uqwercbouiqewcrqhiwuencrquiwehrnqiweuh"); 
 
