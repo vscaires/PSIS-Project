@@ -22,7 +22,7 @@ int close_connection();
 
 
 #define SOCKNAME "/tmp/KVS-LocalServer"
-int sock;
-struct sockaddr_un server_addr;
+int sock, sock1;
+struct sockaddr_un server_addr, sock_addr;
 
 #endif
