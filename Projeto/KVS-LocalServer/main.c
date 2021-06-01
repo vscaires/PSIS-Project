@@ -2,10 +2,11 @@
 
 int main(){
 
-    int client_socket, i = 0;
+    int client_socket, i = 0, error;
     char key[256], c[1], *value, group[256];
     struct sockaddr_un server_addr;
-    Dict kvs = DictCreate();
+
+    groupsecret *gs = initList();
 
     memset(&server_addr, 0, sizeof(struct sockaddr_un));
     /* Clear structure */
@@ -34,6 +35,8 @@ int main(){
         eRead(client_socket, &i, sizeof(i));
         eRead(client_socket, group, i);
         printf("Group name : %s\n", group);
+        
+        groupsecret *aux = insertNew_group(gs, group, "", error);
 
         eRead(client_socket, &i, sizeof(i)); 
         do{
@@ -45,8 +48,8 @@ int main(){
                 value = malloc(i*sizeof(char));
                 eRead(client_socket, value, i);
                 
-                if(DictSearch(kvs, key) == 0 || strcmp(DictSearch(kvs, key), value) != 0){
-                    DictInsert(kvs, key, value);
+                if(search_keyvalue(aux->head_2ndlist, key) == NULL || strcmp(search_keyvalue(aux->head_2ndlist, key), value) != 0){
+                    insertNew_keyvalue(aux->head_2ndlist, key, value, error);
                     printf("Key-value added\n");
                 }else{
                     printf("Key-value already exists\n");   
@@ -58,15 +61,14 @@ int main(){
                 eRead(client_socket, &i, sizeof(i));
                 eRead(client_socket, key, i);
 
-                if(DictSearch(kvs, key) == 0){
+                if(search_keyvalue(aux->head_2ndlist, key) == NULL){
                     i = -1;
                     eWrite(client_socket, &i, sizeof(i));
                     printf("Key-value not found ...\n");
                 }else{
-                    printf("Value : %s\n", DictSearch(kvs, key));
-                    i = strlen(DictSearch(kvs, key));
+                    i = strlen(search_keyvalue(aux->head_2ndlist, key));
                     eWrite(client_socket, &i, sizeof(i));
-                    eWrite(client_socket, DictSearch(kvs, key), i);
+                    eWrite(client_socket, search_keyvalue(aux->head_2ndlist, key), i);
                     printf("Key-value found!\n");   
                 }
                 memset(key, 0, sizeof(key));
@@ -76,10 +78,10 @@ int main(){
                 eRead(client_socket, &i, sizeof(i));
                 eRead(client_socket, key, i);
 
-                if(DictSearch(kvs, key) == NULL){
+                if(search_keyvalue(aux->head_2ndlist, key) == NULL){
                     printf("Key-value not found ...\n");
                 }else{
-                    DictDelete(kvs, key);
+                    remove_keyvalue_pair(aux->head_2ndlist, key);
                     printf("Key-value found and deleted!\n");   
                 }
             }
@@ -88,7 +90,8 @@ int main(){
         close(client_socket);
         printf("Socket closed\n");
     }
-    DictDestroy(kvs);
+    countKeys_perGroup(gs);
+    free_All(gs);
     printf("Key-Value data destroyed! \n");
 
     return 0;

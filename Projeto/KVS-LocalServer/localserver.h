@@ -15,31 +15,44 @@
 
 #define SOCKNAME "/tmp/KVS-LocalServer"
 
-#define INITIAL_SIZE (1024)
-#define GROWTH_FACTOR (2)
-#define MAX_LOAD_FACTOR (1)
-#define MULTIPLIER (97)
 
-typedef struct dict *Dict;
+typedef struct keyvalue{
+    struct keyvalue* next; 
+    char* key;
+    char* value;
+}keyvalue;
 
-/* create a new empty dictionary */
-Dict DictCreate(void);
+typedef struct groupsecret{
 
-/* destroy a dictionary */
-void DictDestroy(Dict);
+    struct groupsecret* nextgroup;
+    struct keyvalue* head_2ndlist;
+    char* group_id;
+    char* secret;
 
-/* insert a new key-value pair into an existing dictionary */
-void DictInsert(Dict, const char *key, const char *value);
+}groupsecret;
 
-/* return the most recently inserted value associated with a key */
-/* or 0 if no matching key is present */
-const char *DictSearch(Dict, const char *key);
-
-/* delete the most recently inserted record with the given key */
-/* if there is no such record, has no effect */
-void DictDelete(Dict, const char *key);
 
 int eRead(int fd, void *buf, size_t count);
 int eWrite(int fd, void *buf, size_t count);
+
+groupsecret *initList(void);
+
+void free_keyvalue_List(keyvalue* head_2ndlist);
+void free_All(groupsecret* groupsecret_head);
+
+groupsecret *insertNew_group(groupsecret* groupsecret_head,char* group,char* secret,int err);
+keyvalue *insertNew_keyvalue(keyvalue* head_2ndlist,char* key,char* value,int err);
+
+groupsecret* search_group(groupsecret* groupsecret_head, char* group_ID_asked);
+
+char* read_value(keyvalue* p);
+keyvalue* change_value(keyvalue* p, char* newvalue);
+void* search_keyvalue(keyvalue* head_2ndList,char* key_asked);
+void remove_keyvalue_pair(keyvalue* head_2ndList, char* key_asked);
+
+void commands();
+
+int countKeys_perGroup(groupsecret* groupsecret_head);
+
 
 #endif
