@@ -147,7 +147,7 @@ void* search_keyvalue(keyvalue* head_2ndList,char* key_asked)
             return aux->value;
         }
 
-    aux = aux->next;
+        aux = aux->next;
 
     }
     return NULL; 

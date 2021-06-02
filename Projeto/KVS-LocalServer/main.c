@@ -1,12 +1,89 @@
 #include "localserver.h"
+groupsecret *gs;
+
+void * thread_func(void *arg){
+    int local_socket;
+    int size, error, flag, i;
+    char key[256], group[265], *values;
+
+    local_socket  = (int) arg;
+
+    printf("Local socket %d connected!\n", local_socket);
+    eRead(local_socket, &size, sizeof(size));
+    eRead(local_socket, group, size);
+    printf("Group name : %s\n", group);
+
+    if(search_group(gs, group) == NULL)
+        gs = insertNew_group(gs, group, "", error);
+    else
+        gs = search_group(gs, group);
+    int s;
+
+    eRead(local_socket, &flag, sizeof(flag)); 
+    do{
+        if(flag == 1){ //put_value
+            eRead(local_socket, &size, sizeof(size));
+            eRead(local_socket, key, size);
+            
+            eRead(local_socket, &size, sizeof(size));
+            values = malloc(size*sizeof(char));
+            eRead(local_socket, values, size);
+            
+            if(search_keyvalue(gs->head_2ndlist, key) != NULL){
+                s = strcmp(search_keyvalue(gs->head_2ndlist, key), values);
+                printf("strcmp %d\n", s);
+            }
+
+            if(search_keyvalue(gs->head_2ndlist, key) == NULL || s != 0){
+                gs->head_2ndlist = insertNew_keyvalue(gs->head_2ndlist, key, values, error);
+                printf("Key-value added\n");
+            }else{
+                printf("Key-value already exists\n");   
+            }
+            free(values);
+
+        }else if(flag == 2){ // get_value
+            eRead(local_socket, &size, sizeof(size));
+            eRead(local_socket, key, size);
+
+            if(search_keyvalue(gs->head_2ndlist, key) == NULL){
+                flag = -1;
+                eWrite(local_socket, &flag, sizeof(flag));
+                printf("Key-value not found ...\n");
+            }else{
+                size = strlen(search_keyvalue(gs->head_2ndlist, key));
+                eWrite(local_socket, &size, sizeof(size));
+                eWrite(local_socket, search_keyvalue(gs->head_2ndlist, key), flag);
+                printf("Key-value found!\n");   
+            }
+
+        }else if(flag == 3){ // delete_value
+            eRead(local_socket, &size, sizeof(size));
+            eRead(local_socket, key, size);
+
+            if(search_keyvalue(gs->head_2ndlist, key) == NULL){
+                printf("Key-value not found ...\n");
+            }else{
+                remove_keyvalue_pair(gs->head_2ndlist, key);
+                printf("Key-value found and deleted!\n");   
+            }
+        }
+        memset(key, 0, sizeof(key));
+
+
+    }while(eRead(local_socket, &flag, sizeof(flag)) > 0);
+    
+    close(local_socket);
+    printf("Socket closed\n");
+    
+}
 
 int main(){
-
-    int client_socket, i = 0, error;
-    char key[256], c[1], *value, group[256];
+    int client_socket;
+    char c[1], *values, group[256];
     struct sockaddr_un server_addr;
 
-    groupsecret *gs = initList();
+    gs = initList();
 
     memset(&server_addr, 0, sizeof(struct sockaddr_un));
     /* Clear structure */
@@ -32,68 +109,10 @@ int main(){
     while(1){
         client_socket = accept(server_sock, NULL, NULL);
         printf("accepted one client -> new socket %d\n", client_socket);
-        eRead(client_socket, &i, sizeof(i));
-        eRead(client_socket, group, i);
-        printf("Group name : %s\n", group);
-        
-        groupsecret *aux = insertNew_group(gs, group, "", error);
-
-        eRead(client_socket, &i, sizeof(i)); 
-        do{
-            if(i == 1){ //put_value
-                eRead(client_socket, &i, sizeof(i));
-                eRead(client_socket, key, i);
-                
-                eRead(client_socket, &i, sizeof(i));
-                value = malloc(i*sizeof(char));
-                eRead(client_socket, value, i);
-                
-                if(search_keyvalue(aux->head_2ndlist, key) == NULL || strcmp(search_keyvalue(aux->head_2ndlist, key), value) != 0){
-                    insertNew_keyvalue(aux->head_2ndlist, key, value, error);
-                    printf("Key-value added\n");
-                }else{
-                    printf("Key-value already exists\n");   
-                }
-                memset(key, 0, sizeof(key));
-                memset(value, 0, sizeof(value));
-
-            }else if(i == 2){ // get_value
-                eRead(client_socket, &i, sizeof(i));
-                eRead(client_socket, key, i);
-
-                if(search_keyvalue(aux->head_2ndlist, key) == NULL){
-                    i = -1;
-                    eWrite(client_socket, &i, sizeof(i));
-                    printf("Key-value not found ...\n");
-                }else{
-                    i = strlen(search_keyvalue(aux->head_2ndlist, key));
-                    eWrite(client_socket, &i, sizeof(i));
-                    eWrite(client_socket, search_keyvalue(aux->head_2ndlist, key), i);
-                    printf("Key-value found!\n");   
-                }
-                memset(key, 0, sizeof(key));
-                memset(value, 0, sizeof(value));
-
-            }else if(i == 3){ // delete_value
-                eRead(client_socket, &i, sizeof(i));
-                eRead(client_socket, key, i);
-
-                if(search_keyvalue(aux->head_2ndlist, key) == NULL){
-                    printf("Key-value not found ...\n");
-                }else{
-                    remove_keyvalue_pair(aux->head_2ndlist, key);
-                    printf("Key-value found and deleted!\n");   
-                }
-            }
-        }while(eRead(client_socket, &i, sizeof(i)) > 0);
-        
-        close(client_socket);
-        printf("Socket closed\n");
+        pthread_t thread_id;
+        pthread_create(&thread_id, NULL, thread_func, client_socket);
     }
-    countKeys_perGroup(gs);
-    free_All(gs);
-    printf("Key-Value data destroyed! \n");
-
+ 
     return 0;
 }
 

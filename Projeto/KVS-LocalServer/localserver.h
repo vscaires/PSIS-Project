@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <assert.h>
+#include <pthread.h>
 
 #define SOCKNAME "/tmp/KVS-LocalServer"
 
