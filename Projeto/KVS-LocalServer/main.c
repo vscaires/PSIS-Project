@@ -1,4 +1,5 @@
 #include "localserver.h"
+
 groupsecret *gs;
 
 void * thread_func(void *arg){
@@ -13,10 +14,14 @@ void * thread_func(void *arg){
     eRead(local_socket, group, size);
     printf("Group name : %s\n", group);
 
-    if(search_group(gs, group) == NULL)
-        gs = insertNew_group(gs, group, "", error);
-    else
-        gs = search_group(gs, group);
+    if(search_group(gs, group) == NULL){
+        close(local_socket);
+        printf("Invalid Group\n");
+        printf("Socket closed\n");
+        return;
+    }
+
+    gs = search_group(gs, group);
     int s;
 
     eRead(local_socket, &flag, sizeof(flag)); 
@@ -31,14 +36,13 @@ void * thread_func(void *arg){
             
             if(search_keyvalue(gs->head_2ndlist, key) != NULL){
                 s = strcmp(search_keyvalue(gs->head_2ndlist, key), values);
-                printf("strcmp %d\n", s);
             }
 
             if(search_keyvalue(gs->head_2ndlist, key) == NULL || s != 0){
                 gs->head_2ndlist = insertNew_keyvalue(gs->head_2ndlist, key, values, error);
-                printf("Key-value added\n");
+                // printf("Key-value added\n");
             }else{
-                printf("Key-value already exists\n");   
+                // printf("Key-value already exists\n");   
             }
             free(values);
 
@@ -49,12 +53,12 @@ void * thread_func(void *arg){
             if(search_keyvalue(gs->head_2ndlist, key) == NULL){
                 flag = -1;
                 eWrite(local_socket, &flag, sizeof(flag));
-                printf("Key-value not found ...\n");
+                // printf("Key-value not found ...\n");
             }else{
                 size = strlen(search_keyvalue(gs->head_2ndlist, key));
                 eWrite(local_socket, &size, sizeof(size));
                 eWrite(local_socket, search_keyvalue(gs->head_2ndlist, key), flag);
-                printf("Key-value found!\n");   
+                // printf("Key-value found!\n");   
             }
 
         }else if(flag == 3){ // delete_value
@@ -62,10 +66,10 @@ void * thread_func(void *arg){
             eRead(local_socket, key, size);
 
             if(search_keyvalue(gs->head_2ndlist, key) == NULL){
-                printf("Key-value not found ...\n");
+                // printf("Key-value not found ...\n");
             }else{
                 remove_keyvalue_pair(gs->head_2ndlist, key);
-                printf("Key-value found and deleted!\n");   
+                // printf("Key-value found and deleted!\n");   
             }
         }
         memset(key, 0, sizeof(key));
@@ -74,22 +78,33 @@ void * thread_func(void *arg){
     }while(eRead(local_socket, &flag, sizeof(flag)) > 0);
     
     close(local_socket);
-    printf("Socket closed\n");
+    // ("Socket closed\n");
     
 }
 
+void * commands_fun(void * arg){
+    while(1){
+        gs = commands(gs);
+        // sleep(3);
+    }
+}
+
 int main(){
-    int client_socket;
+    
+    int unix_socket, inet_sock;
     char c[1], *values, group[256];
-    struct sockaddr_un server_addr;
+    char name[100];
 
     gs = initList();
 
-    memset(&server_addr, 0, sizeof(struct sockaddr_un));
+    /* UNIX Stream Socket */
+    struct sockaddr_un unix_addr;
+
+    memset(&unix_addr, 0, sizeof(struct sockaddr_un));
     /* Clear structure */
-    server_addr.sun_family = AF_UNIX;
+    unix_addr.sun_family = AF_UNIX;
     /* UNIX domain address */
-    strcpy(server_addr.sun_path, SOCKNAME);
+    strcpy(unix_addr.sun_path, SOCKNAME);
 
     unlink(SOCKNAME);
     int server_sock = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -97,7 +112,7 @@ int main(){
         perror("socket creation");
         exit(-1);
     }
-    if(bind(server_sock, (struct sockaddr *) &server_addr, sizeof(struct sockaddr_un)) == -1){
+    if(bind(server_sock, (struct sockaddr *) &unix_addr, sizeof(struct sockaddr_un)) == -1){
         perror("bind");
         exit(-1);
     }
@@ -106,11 +121,22 @@ int main(){
         exit(-1);
     }
 
+    /* INET DGRAM Socket */
+    struct sockaddr_in inet_addr;
+
+    inet_addr.sin_family = AF_INET;
+    inet_addr.sin_port = htons(22);
+    inet_aton("146.193.41.1", &inet_addr.sin_addr);
+    connect(inet_sock, (const struct sockaddr *) &inet_addr, sizeof(inet_addr));
+
+
+    pthread_t t_id;
+    pthread_create(&t_id, NULL, commands_fun, NULL);
     while(1){
-        client_socket = accept(server_sock, NULL, NULL);
-        printf("accepted one client -> new socket %d\n", client_socket);
+        unix_socket = accept(server_sock, NULL, NULL);
+        // printf("accepted one client -> new socket %d\n", unix_socket);
         pthread_t thread_id;
-        pthread_create(&thread_id, NULL, thread_func, client_socket);
+        pthread_create(&thread_id, NULL, thread_func, unix_socket);
     }
  
     return 0;
