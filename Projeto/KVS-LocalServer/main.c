@@ -89,7 +89,7 @@ void * commands_fun(void * arg){
     }
 }
 
-int main(){
+int main(int argc, char *argv[]){
     
     int unix_socket, inet_sock;
     char c[1], *values, group[256];
@@ -122,12 +122,40 @@ int main(){
     }
 
     /* INET DGRAM Socket */
-    struct sockaddr_in inet_addr;
+    int sockfd;
+    struct addrinfo hints, *servinfo, *p;
+    int rv;
+    int numbytes;
 
-    inet_addr.sin_family = AF_INET;
-    inet_addr.sin_port = htons(22);
-    inet_aton("146.193.41.1", &inet_addr.sin_addr);
-    connect(inet_sock, (const struct sockaddr *) &inet_addr, sizeof(inet_addr));
+    if (argc != 3) {
+        fprintf(stderr,"usage: KVS-LocalServer hostname message\n");
+        exit(1);
+    }
+
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_INET6; // set to AF_INET to use IPv4
+    hints.ai_socktype = SOCK_DGRAM;
+
+    if ((rv = getaddrinfo(argv[1], SERVERPORT, &hints, &servinfo)) != 0) {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+        return 1;
+    }
+
+    // loop through all the results and make a socket
+    for(p = servinfo; p != NULL; p = p->ai_next) {
+        if ((sockfd = socket(p->ai_family, p->ai_socktype,
+                p->ai_protocol)) == -1) {
+            perror("KVS-LocalServer: socket");
+            continue;
+        }
+
+        break;
+    }
+
+    if (p == NULL) {
+        fprintf(stderr, "KVS-LocalServer: failed to create socket\n");
+        return 2;
+    }
 
 
     pthread_t t_id;

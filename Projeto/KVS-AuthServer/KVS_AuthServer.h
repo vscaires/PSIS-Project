@@ -4,11 +4,16 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/socket.h>
 #include <sys/un.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <netdb.h>
+
 
 typedef struct auth{
     struct auth* next_auth; 
@@ -20,7 +25,6 @@ typedef struct locals{
     pid_t local_id;
     struct auth* head_auth;
     struct locals* next_locals;
-    
     
 }locals;
 

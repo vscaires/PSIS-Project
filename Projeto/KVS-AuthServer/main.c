@@ -1,40 +1,84 @@
 #include "KVS_AuthServer.h"
 
+#define MYPORT "4950"    // the port users will be connecting to
 
+#define MAXBUFLEN 256
 
-int main(int argc, char *argv[])
+// get sockaddr, IPv4 or IPv6:
+void *get_in_addr(struct sockaddr *sa)
 {
-    int server_sock, addr_len, numbytes, err, check, flag;
-    struct sockaddr_in server_addr;
-    struct sockaddr_storage their_addr;
-    char group[256], secret[256];
-
-    memset(&server_addr, 0, sizeof(struct sockaddr_un));
-    /* Clear structure */
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(22);
-    server_addr.sin_addr.s_addr = INADDR_ANY;
-
-    if(bind(server_sock, (const struct sockaddr *) &server_addr, sizeof(server_addr)) == -1){
-        perror("bind");
-        exit(-1);
+    if (sa->sa_family == AF_INET) {
+        return &(((struct sockaddr_in*)sa)->sin_addr);
     }
+
+    return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
+
+int main(void)
+{
+    int sockfd;
+    struct addrinfo hints, *servinfo, *p;
+    int rv;
+    int numbytes, flag, err;
+    struct sockaddr_storage their_addr;
+    char group[MAXBUFLEN], secret[MAXBUFLEN];
+    socklen_t addr_len;
+
+
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_INET; 
+    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_flags = AI_PASSIVE; 
+
+    if ((rv = getaddrinfo(NULL, MYPORT, &hints, &servinfo)) != 0) {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+        return 1;
+    }
+
+    // loop through all the results and bind to the first we can
+    for(p = servinfo; p != NULL; p = p->ai_next) {
+        if ((sockfd = socket(p->ai_family, p->ai_socktype,
+                p->ai_protocol)) == -1) {
+            perror("KVS-AuthServer: socket");
+            continue;
+        }
+
+        if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+            close(sockfd);
+            perror("KVS-AuthServer: bind");
+            continue;
+        }
+
+        break;
+    }
+
+    if (p == NULL) {
+        fprintf(stderr, "KVS-AuthServer: failed to bind socket\n");
+        return 2;
+    }
+
+    freeaddrinfo(servinfo);
+
+    printf("KVS-AuthServer: waiting to recvfrom...\n");
 
     auth *list = NULL, *aux = NULL;
 
     while(1){
         addr_len = sizeof their_addr;
-        if ((numbytes = recvfrom(server_sock, flag, sizeof(flag) - 1 , NULL,
+        /* Flag Receival */
+        if ((numbytes = recvfrom(sockfd, &flag, sizeof(flag) - 1 , 0,
                 (struct sockaddr *)&their_addr, &addr_len)) == -1) {
             perror("recvfrom");
             exit(-1);
         }
-        if ((numbytes = recvfrom(server_sock, group, sizeof(group) - 1 , NULL,
+        /* Group Receival */
+        if ((numbytes = recvfrom(sockfd, group, MAXBUFLEN - 1 , 0,
                 (struct sockaddr *)&their_addr, &addr_len)) == -1) {
             perror("recvfrom");
             exit(-1);
         }
-        if ((numbytes = recvfrom(server_sock, secret, sizeof(secret) - 1 , NULL,
+        /* Secret Receival */
+        if ((numbytes = recvfrom(sockfd, secret, MAXBUFLEN - 1 , 0,
                 (struct sockaddr *)&their_addr, &addr_len)) == -1) {
             perror("recvfrom");
             exit(-1);
@@ -45,25 +89,36 @@ int main(int argc, char *argv[])
         if(flag == 1) //Authentication
         {
             aux = search_auth(list, group);
-            if(aux == NULL){
-                check = 1;
-                if ((numbytes = sendto(server_sock, check, sizeof(check), NULL,
-                (struct sockaddr *)&their_addr, &addr_len)) == -1) {
+            if(aux == NULL){ //Wrong Group
+                flag = 1;
+                if ((numbytes = sendto(sockfd, &flag, sizeof(flag), 0,
+                            (struct sockaddr *)&their_addr, addr_len)) == -1) {
                 perror("sendto");
                 exit(1);
+                continue;
+                }
             }else{
-                if(authentication(aux,))
-                check = 2;
-                if ((numbytes = sendto(server_sock, check, sizeof(check), NULL,
-                (struct sockaddr *)&their_addr, &addr_len)) == -1) {
+                if(authentication(aux, secret) == 1){
+                    flag = 2; //Wrong Secret
+                    if ((numbytes = sendto(sockfd, &flag, sizeof(flag), 0,
+                            (struct sockaddr *)&their_addr, addr_len)) == -1) {
+                        perror("sendto");
+                        exit(1);
+                    }
+                    continue;
+                }
+                flag = 0; //Success
+                if ((numbytes = sendto(sockfd, &flag, sizeof(flag), 0,
+                            (struct sockaddr *)&their_addr, addr_len)) == -1) {
                 perror("sendto");
                 exit(1);
+                }
             }
+        
         }
-    }
 
 
     }
-
+    close(sockfd);
     return 0;
 }

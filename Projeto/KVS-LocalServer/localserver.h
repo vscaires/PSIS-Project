@@ -11,11 +11,13 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <assert.h>
 #include <pthread.h>
 #include <netinet/in.h>
+#include <netdb.h>
 
 #define SOCKNAME "/tmp/KVS-LocalServer"
+#define SERVERPORT "4950"    // the port users will be connecting to
+
 
 
 typedef struct keyvalue{
