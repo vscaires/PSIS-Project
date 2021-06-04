@@ -4,62 +4,32 @@
 
 #define MAXBUFLEN 256
 
-// get sockaddr, IPv4 or IPv6:
-void *get_in_addr(struct sockaddr *sa)
-{
-    if (sa->sa_family == AF_INET) {
-        return &(((struct sockaddr_in*)sa)->sin_addr);
-    }
-
-    return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
 
 int main(void)
 {
-    int sockfd;
-    struct addrinfo hints, *servinfo, *p;
-    int rv;
-    int numbytes, flag, err;
-    struct sockaddr_storage their_addr;
+    struct sockaddr_in local_addr;
+    struct sockaddr_in other_addr;
+    socklen_t size_other_addr;
     char group[MAXBUFLEN], secret[MAXBUFLEN];
-    socklen_t addr_len;
 
+    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_INET; 
-    hints.ai_socktype = SOCK_DGRAM;
-    hints.ai_flags = AI_PASSIVE; 
-
-    if ((rv = getaddrinfo(NULL, MYPORT, &hints, &servinfo)) != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-        return 1;
+    if (sockfd == -1){
+        perror("socket: ");
+        exit(-1);
     }
 
-    // loop through all the results and bind to the first we can
-    for(p = servinfo; p != NULL; p = p->ai_next) {
-        if ((sockfd = socket(p->ai_family, p->ai_socktype,
-                p->ai_protocol)) == -1) {
-            perror("KVS-AuthServer: socket");
-            continue;
-        }
+    local_addr.sin_family = AF_INET;
+    local_addr.sin_addr.s_addr = INADDR_ANY;
 
-        if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-            close(sockfd);
-            perror("KVS-AuthServer: bind");
-            continue;
-        }
-
-        break;
+    int bind_err = bind(sockfd, (struct sockaddr * )&local_addr,
+                                sizeof(local_addr));
+    if(bind_err == -1){
+        perror("bind");
+        exit(-1);
     }
 
-    if (p == NULL) {
-        fprintf(stderr, "KVS-AuthServer: failed to bind socket\n");
-        return 2;
-    }
-
-    freeaddrinfo(servinfo);
-
-    printf("KVS-AuthServer: waiting to recvfrom...\n");
+    printf("Socket created and binded!\n");
 
     auth *list = NULL, *aux = NULL;
 

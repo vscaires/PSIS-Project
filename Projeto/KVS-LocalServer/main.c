@@ -91,7 +91,7 @@ void * commands_fun(void * arg){
 
 int main(int argc, char *argv[]){
     
-    int unix_socket, inet_sock;
+    int unix_socket;
     char c[1], *values, group[256];
     char name[100];
 
@@ -122,41 +122,39 @@ int main(int argc, char *argv[]){
     }
 
     /* INET DGRAM Socket */
-    int sockfd;
-    struct addrinfo hints, *servinfo, *p;
-    int rv;
-    int numbytes;
+    struct sockaddr_in server_addr;
+    char buff[100];
+    int nbytes;
+    struct sockaddr_in local_addr;
 
-    if (argc != 3) {
-        fprintf(stderr,"usage: KVS-LocalServer hostname message\n");
-        exit(1);
+    if(argc<2){
+        printf("Remote address required\n");
+        exit(-1);
+    }
+    int inet_socket = socket(AF_INET, SOCK_DGRAM, 0);
+
+    if(inet_socket == -1){
+        perror("socket: ");
+        exit(-1);
+    }
+    local_addr.sin_family = AF_INET;
+    local_addr.sin_addr.s_addr = INADDR_ANY;
+    local_addr.sin_port = htons(3000);
+
+    int bind_err = bind(inet_socket, (struct sockaddr *)&local_addr,
+                                        sizeof(local_addr));
+
+    if(bind_err == -1){
+        perror("bind");
+        exit(-1);
     }
 
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_INET6; // set to AF_INET to use IPv4
-    hints.ai_socktype = SOCK_DGRAM;
+    printf(" Socket created \n Ready to send\n");
 
-    if ((rv = getaddrinfo(argv[1], SERVERPORT, &hints, &servinfo)) != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-        return 1;
-    }
-
-    // loop through all the results and make a socket
-    for(p = servinfo; p != NULL; p = p->ai_next) {
-        if ((sockfd = socket(p->ai_family, p->ai_socktype,
-                p->ai_protocol)) == -1) {
-            perror("KVS-LocalServer: socket");
-            continue;
-        }
-
-        break;
-    }
-
-    if (p == NULL) {
-        fprintf(stderr, "KVS-LocalServer: failed to create socket\n");
-        return 2;
-    }
-
+    server_addr.sin_family = AF_INET;
+    inet_aton(argv[1], &server_addr.sin_addr);
+    server_addr.sin_port = htons(3001);
+    
 
     pthread_t t_id;
     pthread_create(&t_id, NULL, commands_fun, NULL);
