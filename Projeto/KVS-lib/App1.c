@@ -10,20 +10,20 @@ int main(){
     printf("Application 1 initiating ...\n");
 
     strcpy(group_id, "ola");
-    strcpy(secret, "");
+    strcpy(secret, "terces");
     strcpy(key, "abcd");
-    strcpy(value, "eletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftw"); 
+    strcpy(value, "As rosas sao verdes!"); 
 
     establish_connection(group_id, secret);
     put_value(key, value);
-    strcpy(key, "1234eletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftw");
-    strcpy(value, "tsboateletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftw");
+    strcpy(key, "1234");
+    strcpy(value, "TSB GO GO GO!");
     put_value(key, value);
-    strcpy(key, "12345eletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftw");
-    strcpy(value, "tsboattsboat");
+    strcpy(key, "4321");
+    strcpy(value, "9 * 9 = 81");
     put_value(key, value);
-    strcpy(key, "123456eletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftw");
-    strcpy(value, "tsboateletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftw");
+    strcpy(key, "dcba");
+    strcpy(value, "PSIS");
     put_value(key, value);
     //get_value(key, msg);
     //delete_value(key);

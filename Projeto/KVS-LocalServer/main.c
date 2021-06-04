@@ -1,11 +1,15 @@
 #include "localserver.h"
 
 groupsecret *gs;
+struct sockaddr_in server_addr;
+int inet_socket;
 
 void * thread_func(void *arg){
     int local_socket;
-    int size, error, flag, i;
-    char key[256], group[265], *values;
+    int size, error, i, flag;
+    char key[256], group[256], secret[256], *values;
+    int numbytes;
+    char flag_auth[8];
 
     local_socket  = (int) arg;
 
@@ -13,12 +17,33 @@ void * thread_func(void *arg){
     eRead(local_socket, &size, sizeof(size));
     eRead(local_socket, group, size);
     printf("Group name : %s\n", group);
+    
 
     if(search_group(gs, group) == NULL){
         close(local_socket);
         printf("Invalid Group\n");
         printf("Socket closed\n");
         return;
+    }
+
+    eRead(local_socket, &size, sizeof(size));
+    eRead(local_socket, secret, size);
+    printf("Secret : %s\n", secret);
+    strcpy(flag_auth, "1");
+    if (numbytes = sendto(inet_socket, flag_auth, sizeof(flag_auth), 0,
+                            (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
+        perror("sendto (flag)");
+        exit(1);
+    }
+    if (numbytes = sendto(inet_socket, group, sizeof(group), 0,
+                            (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
+        perror("sendto (group)");
+        exit(1);
+    }
+    if (numbytes = sendto(inet_socket, secret, sizeof(secret), 0,
+                            (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
+        perror("sendto (secret)");
+        exit(1);
     }
 
     gs = search_group(gs, group);
@@ -122,7 +147,6 @@ int main(int argc, char *argv[]){
     }
 
     /* INET DGRAM Socket */
-    struct sockaddr_in server_addr;
     char buff[100];
     int nbytes;
     struct sockaddr_in local_addr;
@@ -131,7 +155,7 @@ int main(int argc, char *argv[]){
         printf("Remote address required\n");
         exit(-1);
     }
-    int inet_socket = socket(AF_INET, SOCK_DGRAM, 0);
+    inet_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
     if(inet_socket == -1){
         perror("socket: ");
@@ -154,6 +178,9 @@ int main(int argc, char *argv[]){
     server_addr.sin_family = AF_INET;
     inet_aton(argv[1], &server_addr.sin_addr);
     server_addr.sin_port = htons(3001);
+    int numbytes;
+    
+    
     
 
     pthread_t t_id;

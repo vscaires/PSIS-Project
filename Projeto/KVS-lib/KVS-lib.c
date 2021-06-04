@@ -26,7 +26,10 @@ int establish_connection (char * group_id, char * secret){
     printf("Secret : %s\n\n", secret);
     int i = strlen(group_id);
     write(sock, &i, sizeof(i));
-    write(sock, group_id, strlen(group_id));
+    write(sock, group_id, i);
+    i = strlen(secret);
+    write(sock, &i, sizeof(i));
+    write(sock, secret, i);
 
     return 0;
 }

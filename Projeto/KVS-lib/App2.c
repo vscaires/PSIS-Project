@@ -7,12 +7,12 @@ int main(){
     char value[256], key[256];
     char ** msg;
 
-    printf("Application 1 initiating ...\n");
+    printf("Application 2 initiating ...\n");
 
     strcpy(group_id, "aedus");
     strcpy(secret, "");
     strcpy(key, "abcd");
-    strcpy(value, "eletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftw"); 
+    strcpy(value, "ola ola adeus"); 
 
     establish_connection(group_id, secret);
     put_value(key, value);
