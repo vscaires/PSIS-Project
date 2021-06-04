@@ -40,10 +40,11 @@ keyvalue *insertNew_keyvalue(keyvalue* head_2ndlist,char* key,char* value,int er
     keyvalue *new;
 
     new = (keyvalue*) malloc(sizeof(keyvalue));
+
     if(new!=NULL)
     {
-        new->key = (char*) malloc(sizeof(key));
-        new->value = (char*) malloc(sizeof(value));
+        // new->key = (char*) malloc(sizeof(key));
+        // new->value = (char*) malloc(sizeof(value));
         new->next = head_2ndlist;
         strcpy(new->key,key);
         strcpy(new->value,value);
@@ -64,9 +65,9 @@ groupsecret *insertNew_group(groupsecret* groupsecret_head,char* group,char* sec
     new = (groupsecret*) malloc(sizeof(groupsecret));
     if(new!=NULL)
     {
-        new->group_id = (char*) malloc(sizeof(group));
+        // new->group_id = (char*) malloc(sizeof(group));
         strcpy(new->group_id,group);
-        new->secret = (char*) malloc(sizeof(secret));
+        // new->secret = (char*) malloc(sizeof(secret));
         strcpy(new->secret, secret);
         new->head_2ndlist = NULL;
         new->nextgroup = groupsecret_head;
@@ -168,4 +169,35 @@ groupsecret* search_group(groupsecret* groupsecret_head, char* group_ID_asked)
 
     }
     return NULL; // make warning about key not found 
+}
+
+groupsecret *deleteGroup(groupsecret **groupsecret_head, char *group)
+{
+    // Store head node
+    groupsecret *temp = *groupsecret_head, *prev;
+ 
+    // If head node itself holds the key to be deleted
+    if (temp != NULL && strcmp(temp->group_id,group) == 0) {
+        *groupsecret_head = temp->nextgroup; // Changed head
+        free(temp); // free old head
+        return *groupsecret_head;
+    }
+ 
+    // Search for the key to be deleted, keep track of the
+    // previous node as we need to change 'prev->next'
+    while (temp != NULL && strcmp(temp->group_id,group) != 0) {
+        prev = temp;
+        temp = temp->nextgroup;
+    }
+ 
+    // If key was not present in linked list
+    if (temp == NULL)
+        return *groupsecret_head;
+ 
+    // Unlink the node from linked list
+    prev->nextgroup = temp->nextgroup;
+ 
+    free(temp); // Free memory
+
+    return *groupsecret_head;
 }

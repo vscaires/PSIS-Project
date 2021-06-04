@@ -9,8 +9,8 @@ int main(){
 
     printf("Application 1 initiating ...\n");
 
-    strcpy(group_id, "something1234");
-    strcpy(secret, "password321");
+    strcpy(group_id, "ola");
+    strcpy(secret, "");
     strcpy(key, "abcd");
     strcpy(value, "eletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftweletroftw"); 
 
