@@ -1,15 +1,13 @@
 #include "localserver.h"
 
 groupsecret *gs;
-struct sockaddr_in server_addr;
-int inet_socket;
+
 
 void * thread_func(void *arg){
     int local_socket;
-    int size, error, i, flag;
+    int size, error, i, flag, numbytes;
     char key[256], group[256], secret[256], *values;
-    int numbytes;
-    char flag_auth[8];
+    char flag_auth[8], check[8];
 
     local_socket  = (int) arg;
 
@@ -29,7 +27,9 @@ void * thread_func(void *arg){
     eRead(local_socket, &size, sizeof(size));
     eRead(local_socket, secret, size);
     printf("Secret : %s\n", secret);
-    strcpy(flag_auth, "1");
+
+    printf("Trying to authenticate...\n");
+    strcpy(flag_auth, "1"); /*Authentication FLAG*/
     if (numbytes = sendto(inet_socket, flag_auth, sizeof(flag_auth), 0,
                             (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
         perror("sendto (flag)");
@@ -44,6 +44,16 @@ void * thread_func(void *arg){
                             (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
         perror("sendto (secret)");
         exit(1);
+    }
+    if ((numbytes = recvfrom(inet_socket, check, 8, 0,
+                (struct sockaddr *)&server_addr, sizeof(server_addr))) == -1) {
+            perror("recvfrom");
+            exit(-1);
+    }
+
+    if(strcmp(check, "ok") != 0){
+        printf("Not Authenticated\n");
+        close(local_socket);
     }
 
     gs = search_group(gs, group);

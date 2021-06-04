@@ -51,8 +51,9 @@ groupsecret *commands(groupsecret *head){
 }
 
 groupsecret *create_group(groupsecret *head){
-    char group[256];
-    int error;
+    char group[256], flag[8], secret[256];
+    int error, numbytes;
+    
 
     printf("Insert the Group Name:\t");
     char c = NULL;
@@ -61,9 +62,26 @@ groupsecret *create_group(groupsecret *head){
     }
     fgets(group, sizeof(group), stdin);
     printf("%s\n", group);
-    group[strcspn(group, "\n")] = 0;  
+    group[strcspn(group, "\n")] = 0;
+    gen_random(secret, 256);
     if(search_group(head, group) == NULL){
         head = insertNew_group(head, group, "", error);
+        strcpy(flag, "0"); /*Insert new Group-Secret FLAG*/
+        if (numbytes = sendto(inet_socket, flag, sizeof(flag), 0,
+                                (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
+            perror("sendto (flag)");
+            exit(1);
+        }
+        if (numbytes = sendto(inet_socket, group, sizeof(group), 0,
+                                (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
+            perror("sendto (group)");
+            exit(1);
+        }
+        if (numbytes = sendto(inet_socket, secret, sizeof(secret), 0,
+                                (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
+            perror("sendto (secret)");
+            exit(1);
+        }
         printf("New group added!\n");
     }     
     else
@@ -136,3 +154,12 @@ void show_status(groupsecret *head){
 void exit_server(groupsecret *head){
 
 }
+
+void gen_random(char *s, int len) {
+    char alphanum[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+
+    for (int i = 0; i < len; ++i) {
+        s[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+
+    s[len] = 0;

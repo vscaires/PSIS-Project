@@ -18,7 +18,8 @@
 #define SOCKNAME "/tmp/KVS-LocalServer"
 #define SERVERPORT "4950"    // the port users will be connecting to
 
-
+struct sockaddr_in server_addr;
+int inet_socket;
 
 typedef struct keyvalue{
     struct keyvalue* next; 
@@ -65,6 +66,7 @@ groupsecret *delete_group(groupsecret *head);
 void show_group(groupsecret *head);
 void show_status(groupsecret *head);
 void exit_server(groupsecret *head);
+void gen_random(char *s, int len);
 
 
 #endif

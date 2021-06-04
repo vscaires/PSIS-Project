@@ -1,7 +1,6 @@
 #include "KVS_AuthServer.h"
 
 #define MYPORT "4950"    // the port users will be connecting to
-
 #define MAXBUFLEN 256
 
 
@@ -73,7 +72,7 @@ int main()
         if(strcmp(flag,"0") == 0) //Insert
             list = insert_new_auth(list, group, secret, err);
         
-        if(strcmp(flag,"1") == 0) //Authentication
+        if(strcmp(flag,"1") == 0) //Authentication FLAG
         {
             aux = search_auth(list, group);
             if(aux == NULL){ //Wrong Group
