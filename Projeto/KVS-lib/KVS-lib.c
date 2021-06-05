@@ -27,13 +27,13 @@ int establish_connection (char * group_id, char * secret){
     int pid = getpid();
     char mypid[6];
     sprintf(mypid, "%d", pid);
-    write(sock, &mypid, sizeof(pid));
+    eWrite(sock, &mypid, sizeof(pid));
     int i = strlen(group_id);
-    write(sock, &i, sizeof(i));
-    write(sock, group_id, i);
+    eWrite(sock, &i, sizeof(i));
+    eWrite(sock, group_id, i);
     i = strlen(secret);
-    write(sock, &i, sizeof(i));
-    write(sock, secret, i);
+    eWrite(sock, &i, sizeof(i));
+    eWrite(sock, secret, i);
 
     return 0;
 }
@@ -45,30 +45,15 @@ int put_value(char * key, char * value){
     printf("------Put Value-------\n");
     printf("Key : %s\n", key);
     printf("Value : %s\n", value);
-    if ((write(sock, &flag, sizeof(flag))) < 0){
-        perror("write");
-        return(-1);
-    }
+    eWrite(sock, &flag, sizeof(flag));
         
     sz = strlen(key);
-    if ((write(sock, &sz, sizeof(sz))) < 0){
-        perror("write key size");
-        return(-2);
-    }
-    if (write(sock, key, strlen(key)) < 0) {
-        perror("write key");
-        return(-3); 
-    }
+    eWrite(sock, &sz, sizeof(sz));
+    eWrite(sock, key, strlen(key));
 
     sz = strlen(value);
-    if ((write(sock, &sz, sizeof(sz))) < 0){
-        perror("write value size");
-        return(-2);
-    }
-    if (write(sock, value, strlen(value)) < 0) {
-        perror("write value");
-        return(-3); 
-    }
+    eWrite(sock, &sz, sizeof(sz));
+    eWrite(sock, value, strlen(value));
 
     printf("----------------------\n\n");
     return 1;
@@ -78,23 +63,14 @@ int get_value(char * key, char ** value){
     int flag = 2, sz = 0;
     printf("------Get value-------\n");
     printf("Key: %s\n", key);
-    if ((write(sock, &flag, sizeof(flag))) < 0){
-        perror("write flag");
-        return(-1);
-    }
+    eWrite(sock, &flag, sizeof(flag));
 
     sz = strlen(key);
-    if ((write(sock, &sz, sizeof(sz))) < 0){
-        perror("write key size");
-        return(-2);
-    }
+    eWrite(sock, &sz, sizeof(sz));
 
-    if (write(sock, key, strlen(key)) < 0) {
-        perror("write key");
-        return(-3); 
-    }
+    eWrite(sock, key, strlen(key));
 
-    read(sock, &sz, sizeof(sz));
+    eRead(sock, &sz, sizeof(sz));
     if(sz == -1){
         printf("Key-Value not found...\n");
         printf("----------------------\n\n");
@@ -103,7 +79,7 @@ int get_value(char * key, char ** value){
 
     value = malloc(sizeof(char*));
     value[0] = malloc(sz*sizeof(char));
-    read(sock, value[0], sz);
+    eRead(sock, value[0], sz);
     
     printf("Value : %s\n", value[0]);
     printf("----------------------\n\n");
@@ -116,28 +92,19 @@ int delete_value(char * key){
     printf("-----Delete Value-----\n");
     printf("Key: %s\n", key);
 
-    if ((write(sock, &flag, sizeof(flag))) < 0){
-        perror("write flag");
-        return(-1);
-    }
+    eWrite(sock, &flag, sizeof(flag));
 
     sz = strlen(key);
-    if ((write(sock, &sz, sizeof(sz))) < 0){
-        perror("write key size");
-        return(-2);
-    }
-    if (write(sock, key, strlen(key)) < 0) {
-        perror("send key");
-        return(-3); 
-    }
+    eWrite(sock, &sz, sizeof(sz));
+    eWrite(sock, key, strlen(key));
     printf("----------------------\n\n");
 
     return 1;
 }
 
-int register_callback(char * key, void (*callback_function)(char *)){
+// int register_callback(char * key, void (*callback_function)(char *)){
 
-}
+// }
 
 int close_connection(){
     printf("Exiting sock ...%d\n", sock);

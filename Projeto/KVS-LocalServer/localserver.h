@@ -18,27 +18,25 @@
 
 #define SOCKNAME "/tmp/KVS-LocalServer"
 #define MAX_CLIENTS 100
+#define MAX_SIZE 256
+#define MAX_PID 6
+#define MAX_FLAG 8
 
 typedef struct keyvalue{
     struct keyvalue* next; 
-    char key[256];
-    char value[1000];
+    char key[MAX_SIZE];
+    char *value;
 }keyvalue;
 
 typedef struct groupsecret{
 
     struct groupsecret* nextgroup;
     struct keyvalue* head_2ndlist;
-    char group_id[256];
-    char secret[256];
+    char group_id[MAX_SIZE];
+    char secret[MAX_SIZE];
 
 }groupsecret;
 
-typedef struct status{
-    int client_PID;
-    int establishing_time;
-    int close_time; 
-}status;
 
 groupsecret *gs;
 struct sockaddr_in server_addr;
