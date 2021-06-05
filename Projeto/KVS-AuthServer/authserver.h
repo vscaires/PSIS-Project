@@ -20,30 +20,15 @@ typedef struct auth{
     char* secret;
 }auth;
 
-// typedef struct locals{
-//     char local_id[6];
-//     struct auth* head_auth;
-//     struct locals* next_locals;
-    
-// }locals;
-
+#define MAXBUFLEN 256
 
 auth* initList(void);  
-
-// void free_all_locals(locals* main_head);
 void free_auth_lists(auth* head_auth);
- 
 auth *insert_new_auth(auth* head_auth,char* group_new,char* secret_new,int err);
-// locals *insert_new_local(locals* main_head,char * local_id_new, int err);
-
 int authentication(auth* p, char* secret_check);
-
 auth *remove_auth_pair(auth* head_auth, char* group_asked);
-
 auth* search_auth(auth* head_auth,char* group_asked);
-// locals* search_local(locals* main_head, char * local_asked);
 
-// int countgroups_perLocal(locals* p);
 
 void * thread_func(void * arg);
 

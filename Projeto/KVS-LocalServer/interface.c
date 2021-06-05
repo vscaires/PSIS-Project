@@ -51,7 +51,7 @@ groupsecret *commands(groupsecret *head){
 }
 
 groupsecret *create_group(groupsecret *head){
-    char group[256], flag[8], secret[256];
+    char group[MAX_SIZE], flag[8], secret[MAX_SIZE];
     int error, numbytes;
     
 
@@ -92,7 +92,7 @@ groupsecret *create_group(groupsecret *head){
 
 groupsecret *delete_group(groupsecret *head){
     int error;
-    char group[256];
+    char group[MAX_SIZE];
 
     printf("Insert the Group Name:\t");
     char c;
@@ -120,7 +120,7 @@ groupsecret *delete_group(groupsecret *head){
 
 void show_group(groupsecret *head){
     int keys;
-    char group[256], secret[256];
+    char group[MAX_SIZE], secret[MAX_SIZE];
     groupsecret *aux;
 
     printf("Insert the Group Name:\t");
