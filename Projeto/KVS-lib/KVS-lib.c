@@ -24,6 +24,10 @@ int establish_connection (char * group_id, char * secret){
     printf("Socket connected!\n\n");
     printf("Group Name : %s\n", group_id);
     printf("Secret : %s\n\n", secret);
+    int pid = getpid();
+    char mypid[6];
+    sprintf(mypid, "%d", pid);
+    write(sock, &mypid, sizeof(pid));
     int i = strlen(group_id);
     write(sock, &i, sizeof(i));
     write(sock, group_id, i);

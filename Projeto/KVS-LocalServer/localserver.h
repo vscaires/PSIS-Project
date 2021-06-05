@@ -14,12 +14,10 @@
 #include <pthread.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <arpa/inet.h>
 
 #define SOCKNAME "/tmp/KVS-LocalServer"
-#define SERVERPORT "4950"    // the port users will be connecting to
-
-struct sockaddr_in server_addr;
-int inet_socket;
+#define MAX_CLIENTS 100
 
 typedef struct keyvalue{
     struct keyvalue* next; 
@@ -42,6 +40,10 @@ typedef struct status{
     int close_time; 
 }status;
 
+groupsecret *gs;
+struct sockaddr_in server_addr;
+int inet_socket;
+char client_PID[MAX_CLIENTS][6];
 
 int eRead(int fd, void *buf, size_t count);
 int eWrite(int fd, void *buf, size_t count);

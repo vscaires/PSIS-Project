@@ -1,16 +1,23 @@
 #include "localserver.h"
 
-groupsecret *gs;
-
 
 void * thread_func(void *arg){
     int local_socket;
     int size, error, i, flag, numbytes;
     char key[256], group[256], secret[256], *values;
-    char flag_auth[8], check[8];
+    char flag_auth[8], check[8], cpid[6];
 
     local_socket  = (int) arg;
 
+    eRead(local_socket, &cpid, 6);
+    printf("Client PID : %s\n", cpid);
+
+    for(i = 0; i < 100; i++){
+        if(strcmp(client_PID[i], "") == 0){
+            strcpy(client_PID[i], cpid);
+            break;
+        }
+    }
     printf("Local socket %d connected!\n", local_socket);
     eRead(local_socket, &size, sizeof(size));
     eRead(local_socket, group, size);
@@ -45,8 +52,7 @@ void * thread_func(void *arg){
         perror("sendto (secret)");
         exit(1);
     }
-    if ((numbytes = recvfrom(inet_socket, check, 8, 0,
-                (struct sockaddr *)&server_addr, sizeof(server_addr))) == -1) {
+    if (numbytes = recv(inet_socket, check, 8, 0) == -1){
             perror("recvfrom");
             exit(-1);
     }
@@ -54,7 +60,10 @@ void * thread_func(void *arg){
     if(strcmp(check, "ok") != 0){
         printf("Not Authenticated\n");
         close(local_socket);
+        return;
     }
+
+    printf("Authenticated! :) \n");
 
     gs = search_group(gs, group);
     int s;
@@ -190,8 +199,6 @@ int main(int argc, char *argv[]){
     server_addr.sin_port = htons(3001);
     int numbytes;
     
-    
-    
 
     pthread_t t_id;
     pthread_create(&t_id, NULL, commands_fun, NULL);
@@ -201,7 +208,7 @@ int main(int argc, char *argv[]){
         pthread_t thread_id;
         pthread_create(&thread_id, NULL, thread_func, unix_socket);
     }
- 
+    
     return 0;
 }
 

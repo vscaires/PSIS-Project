@@ -56,14 +56,14 @@ groupsecret *create_group(groupsecret *head){
     
 
     printf("Insert the Group Name:\t");
-    char c = NULL;
+    char c;
     while ((c = getchar()) != '\n' && c != EOF) {
         // Do nothing until input buffer fully flushed.
     }
     fgets(group, sizeof(group), stdin);
     printf("%s\n", group);
     group[strcspn(group, "\n")] = 0;
-    gen_random(secret, 256);
+    gen_random(secret, 255);
     if(search_group(head, group) == NULL){
         head = insertNew_group(head, group, "", error);
         strcpy(flag, "0"); /*Insert new Group-Secret FLAG*/
@@ -95,7 +95,7 @@ groupsecret *delete_group(groupsecret *head){
     char group[256];
 
     printf("Insert the Group Name:\t");
-    char c = NULL;
+    char c;
     while ((c = getchar()) != '\n' && c != EOF) {
         // Do nothing until input buffer fully flushed.
     }
@@ -124,7 +124,7 @@ void show_group(groupsecret *head){
     groupsecret *aux;
 
     printf("Insert the Group Name:\t");
-    char c = NULL;
+    char c;
     while ((c = getchar()) != '\n' && c != EOF) {
         // Do nothing until input buffer fully flushed.
     }
@@ -148,11 +148,20 @@ void show_group(groupsecret *head){
 }
 
 void show_status(groupsecret *head){
-
+    int i;
+    printf("List of Client PIDs : \n");
+    for(i = 0; i < 100; i++){
+        if(strcmp(client_PID[i], "") == 0){
+            printf(".\n");
+            break;
+        }
+        printf("%d - %s\n", i, client_PID[i]);
+    }
 }
 
 void exit_server(groupsecret *head){
-
+    printf("Server Closed.\n");
+    exit(1);
 }
 
 void gen_random(char *s, int len) {
@@ -163,3 +172,4 @@ void gen_random(char *s, int len) {
     }
 
     s[len] = 0;
+}

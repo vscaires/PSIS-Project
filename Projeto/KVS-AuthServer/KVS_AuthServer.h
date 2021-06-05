@@ -14,37 +14,37 @@
 #include <string.h>
 #include <netdb.h>
 
-
 typedef struct auth{
     struct auth* next_auth; 
     char* group_id;
     char* secret;
 }auth;
 
-typedef struct locals{
-    pid_t local_id;
-    struct auth* head_auth;
-    struct locals* next_locals;
+// typedef struct locals{
+//     char local_id[6];
+//     struct auth* head_auth;
+//     struct locals* next_locals;
     
-}locals;
+// }locals;
 
-//
-locals* initList(void);  
 
-void free_all_locals(locals* main_head);
-void free_auth_lists(locals* head_auth);
+auth* initList(void);  
+
+// void free_all_locals(locals* main_head);
+void free_auth_lists(auth* head_auth);
  
 auth *insert_new_auth(auth* head_auth,char* group_new,char* secret_new,int err);
-locals *insert_new_local(locals* main_head,pid_t local_id_new, int err);
+// locals *insert_new_local(locals* main_head,char * local_id_new, int err);
 
 int authentication(auth* p, char* secret_check);
 
-auth* change_secret(auth* p, char* new_secret);
-void remove_auth_pair(auth* head_auth, char* group_asked);
+auth *remove_auth_pair(auth* head_auth, char* group_asked);
 
 auth* search_auth(auth* head_auth,char* group_asked);
-locals* search_local(locals* main_head, pid_t local_asked);
+// locals* search_local(locals* main_head, char * local_asked);
 
-int countgroups_perLocal(locals* p);
+// int countgroups_perLocal(locals* p);
+
+void * thread_func(void * arg);
 
 #endif

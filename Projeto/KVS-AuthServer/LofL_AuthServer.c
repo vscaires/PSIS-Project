@@ -1,25 +1,24 @@
 #include "KVS_AuthServer.h"
 //# Functioning details in KVS_AuthServer.h
-locals *main_head;
 
-locals* initList(void)
+auth* initList(void)
 {
     return NULL;
 }
 //#####################  Free  ###################################
-void free_all_locals(locals* main_head)
-{
-    locals *aux, *newhead;
+// void free_all_locals(locals* main_head)
+// {
+//     locals *aux, *newhead;
 
-    for (aux = main_head; aux!=NULL; aux=newhead){
-        newhead = aux->next_locals;
-        free_auth_lists(aux->head_auth);
-        free(aux);
-    }
-    return;
-}
+//     for (aux = main_head; aux!=NULL; aux=newhead){
+//         newhead = aux->next_locals;
+//         free_auth_lists(aux->head_auth);
+//         free(aux);
+//     }
+//     return;
+// }
 
-void free_auth_lists(locals* head_auth)
+void free_auth_lists(auth* head_auth)
 {
     auth *aux, *newhead;
 
@@ -54,24 +53,24 @@ auth *insert_new_auth(auth* head_auth,char* group_new,char* secret_new,int err)
         return head_auth;
 }
 
-locals *insert_new_local(locals* main_head,pid_t local_id_new, int err)
-{
-    locals *new;
+// locals *insert_new_local(locals* main_head,char local_id_new[6], int err)
+// {
+//     locals *new;
 
-    new = (locals*) malloc(sizeof(locals));
-    if(new!=NULL)
-    {
-        new->local_id = local_id_new;
-        new->head_auth = NULL;
-        new->next_locals = main_head;
-        main_head = new;
-        err = 0;
-    }else
-    {
-        err = 1;
-    }
-        return main_head;
-}
+//     new = (locals*) malloc(sizeof(locals));
+//     if(new!=NULL)
+//     {
+//         strcpy(new->local_id, local_id_new);
+//         new->head_auth = NULL;
+//         new->next_locals = main_head;
+//         main_head = new;
+//         err = 0;
+//     }else
+//     {
+//         err = 1;
+//     }
+//         return main_head;
+// }
 
 //#####################  Read / Change / Remove  ###################################
 int authentication(auth* p, char* secret_check)
@@ -84,13 +83,13 @@ int authentication(auth* p, char* secret_check)
     }
 }
 
-auth* change_secret(auth* p, char* new_secret)
-{
-    strcpy(p->secret,new_secret);
-    return p; 
-}
+// auth* change_secret(auth* p, char* new_secret)
+// {
+//     strcpy(p->secret,new_secret);
+//     return p; 
+// }
 
-void remove_auth_pair(auth* head_auth, char* group_asked)
+auth *remove_auth_pair(auth* head_auth, char* group_asked)
 {
     auth* temp = head_auth;
     auth* previous = NULL;
@@ -101,7 +100,7 @@ void remove_auth_pair(auth* head_auth, char* group_asked)
         free(temp->group_id);
         free(temp->secret);
         free(temp);
-        return;
+        return head_auth;
     }
     else
     {
@@ -113,13 +112,14 @@ void remove_auth_pair(auth* head_auth, char* group_asked)
         }
         if (temp == NULL)
         {
-            return;
+            return head_auth;
         }
         previous->next_auth = temp->next_auth;
         free(temp->group_id);
         free(temp->secret);
         free(temp);
     }
+    return head_auth;
 }
 
 
@@ -138,33 +138,33 @@ auth* search_auth(auth* head_auth,char* group_asked)
     return NULL; 
 }
 
-locals* search_local(locals* main_head, pid_t local_asked) 
-{
-    locals* aux;
-    aux = main_head; 
+// locals* search_local(locals* main_head, char * local_asked) 
+// {
+//     locals* aux;
+//     aux = main_head; 
 
-    while(aux!=NULL){
-        if(local_asked==aux->local_id)
-        {
-            return aux;
-        }
+//     while(aux!=NULL){
+//         if(strcmp(local_asked, aux->local_id) == 0)
+//         {
+//             return aux;
+//         }
 
-    aux = aux->next_locals;
+//     aux = aux->next_locals;
 
-    }
-    return NULL; // make warning about not found 
-}
+//     }
+//     return NULL; // make warning about not found 
+// }
 
-//#####################  Extras  ###################################
-int countgroups_perLocal(locals* p)
-{
-    auth* aux;
-    int count = 0;
-    aux = p->head_auth;
+// //#####################  Extras  ###################################
+// int countgroups_perLocal(locals* p)
+// {
+//     auth* aux;
+//     int count = 0;
+//     aux = p->head_auth;
 
-    for (aux=p->head_auth; aux!=NULL; aux= aux->next_auth)
-        count++;
+//     for (aux=p->head_auth; aux!=NULL; aux= aux->next_auth)
+//         count++;
 
-    return count;
-}
+//     return count;
+// }
 
