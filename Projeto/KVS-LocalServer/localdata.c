@@ -44,7 +44,7 @@ keyvalue *insertNew_keyvalue(keyvalue* head_2ndlist,char* key,char* value,int er
     if(new!=NULL)
     {
         // new->key = (char*) malloc(sizeof(key));
-        // new->value = (char*) malloc(sizeof(value));
+        new->value = (char*) malloc(sizeof(value));
         new->next = head_2ndlist;
         strcpy(new->key,key);
         strcpy(new->value,value);

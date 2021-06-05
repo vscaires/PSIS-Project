@@ -136,7 +136,7 @@ void * commands_fun(void * arg){
 int main(int argc, char *argv[]){
     
     int unix_socket;
-    char c[1], *values, group[MAX_SIZE];
+    char c[1], group[MAX_SIZE];
     char name[100];
 
     gs = initList();
